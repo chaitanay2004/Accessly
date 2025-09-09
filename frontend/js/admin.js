@@ -224,15 +224,26 @@ document.addEventListener('DOMContentLoaded', function() {
                     row.innerHTML = `
                         <td>${user.name}</td>
                         <td>${user.email}</td>
-                        <td>${user.registrations}</td>
+                        <td>${user.registrations || 0}</td>
                         <td>${new Date().toLocaleDateString()}</td>
                         <td class="status-active">Active</td>
                         <td>
-                            <button class="btn btn-sm btn-primary">View</button>
+                            <button class="btn btn-sm btn-primary view-user-btn" data-userid="${user._id || user.id}">View</button>
                         </td>
                     `;
                     
+                    // Store the user data directly on the element
+                    const button = row.querySelector('.view-user-btn');
+                    button.userData = user;
+                    
                     usersTable.appendChild(row);
+                });
+                
+                // Add event listeners to view buttons
+                document.querySelectorAll('.view-user-btn').forEach(btn => {
+                    btn.addEventListener('click', function() {
+                        showUserDetails(this.userData);
+                    });
                 });
             }
         } catch (error) {
@@ -419,5 +430,159 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
             }
         });
+    }
+
+   // Function to show user details
+function showUserDetails(user) {
+    const modal = document.getElementById('eventModal');
+    const modalTitle = document.getElementById('eventModalTitle');
+    const modalBody = document.getElementById('eventForm');
+    
+    // Remove any existing event listeners from the form
+    const newForm = modalBody.cloneNode(false);
+    modalBody.parentNode.replaceChild(newForm, modalBody);
+    const newModalBody = document.getElementById('eventForm');
+    
+    modalTitle.textContent = `User Details: ${user.name}`;
+    
+    // Make sure we have a valid user ID
+    const userId = user._id || user.id;
+    console.log('Showing user details for ID:', userId);
+    
+    newModalBody.innerHTML = `
+        <div class="user-details">
+            <div class="detail-item">
+                <label>Name:</label>
+                <span>${user.name}</span>
+            </div>
+            <div class="detail-item">
+                <label>Email:</label>
+                <span>${user.email}</span>
+            </div>
+            <div class="detail-item">
+                <label>Role:</label>
+                <span class="badge ${user.role === 'admin' ? 'badge-admin' : 'badge-user'}">${user.role}</span>
+            </div>
+            <div class="detail-item">
+                <label>Registrations:</label>
+                <span>${user.registrations || 0}</span>
+            </div>
+            <div class="detail-item">
+                <label>User ID:</label>
+                <span class="user-id">${userId}</span>
+            </div>
+            <div class="form-actions">
+                <button type="button" class="btn btn-secondary" id="closeUserModal">Close</button>
+                ${user.role !== 'admin' ? 
+                    `<button type="button" class="btn btn-danger" id="makeAdminBtn" data-userid="${userId}">Make Admin</button>` : 
+                    `<button type="button" class="btn btn-warning" id="removeAdminBtn" data-userid="${userId}">Remove Admin</button>`
+                }
+            </div>
+        </div>
+    `;
+    
+    modal.classList.remove('hidden');
+    
+    // Add event listeners
+    document.getElementById('closeUserModal').addEventListener('click', function() {
+        modal.classList.add('hidden');
+    });
+    
+    // Make admin functionality
+    const makeAdminBtn = document.getElementById('makeAdminBtn');
+    if (makeAdminBtn) {
+        makeAdminBtn.addEventListener('click', function() {
+            const userId = this.getAttribute('data-userid');
+            console.log('Make admin button clicked with ID:', userId);
+            makeUserAdmin(userId);
+        });
+    }
+    
+    // Remove admin functionality
+    const removeAdminBtn = document.getElementById('removeAdminBtn');
+    if (removeAdminBtn) {
+        removeAdminBtn.addEventListener('click', function() {
+            const userId = this.getAttribute('data-userid');
+            console.log('Remove admin button clicked with ID:', userId);
+            removeUserAdmin(userId);
+        });
+    }
+    
+    // Close modal when clicking outside
+    modal.addEventListener('click', function(e) {
+        if (e.target === modal) {
+            modal.classList.add('hidden');
+        }
+    });
+    
+    // Prevent form submission when Enter key is pressed
+    newModalBody.addEventListener('keydown', function(e) {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+        }
+    });
+}
+    // Function to make user admin
+    async function makeUserAdmin(userId) {
+        try {
+            console.log('Making user admin with ID:', userId);
+            
+            if (!userId || userId === 'undefined') {
+                alert('Invalid user ID');
+                return;
+            }
+
+            const response = await fetch(`/api/admin/users/${userId}/make-admin`, {
+                method: 'PUT',
+                headers: {
+                    'Authorization': `Bearer ${localStorage.getItem('token')}`,
+                    'Content-Type': 'application/json'
+                }
+            });
+            
+            if (response.ok) {
+                alert('User role updated to admin successfully!');
+                document.getElementById('eventModal').classList.add('hidden');
+                loadUsers();
+            } else {
+                const error = await response.json();
+                alert(error.message || 'Failed to update user role');
+            }
+        } catch (error) {
+            console.error('Error making user admin:', error);
+            alert('Failed to update user role. Please try again.');
+        }
+    }
+
+    // Function to remove admin role
+    async function removeUserAdmin(userId) {
+        try {
+            console.log('Removing admin role from user with ID:', userId);
+            
+            if (!userId || userId === 'undefined') {
+                alert('Invalid user ID');
+                return;
+            }
+
+            const response = await fetch(`/api/admin/users/${userId}/remove-admin`, {
+                method: 'PUT',
+                headers: {
+                    'Authorization': `Bearer ${localStorage.getItem('token')}`,
+                    'Content-Type': 'application/json'
+                }
+            });
+            
+            if (response.ok) {
+                alert('Admin role removed successfully!');
+                document.getElementById('eventModal').classList.add('hidden');
+                loadUsers();
+            } else {
+                const error = await response.json();
+                alert(error.message || 'Failed to update user role');
+            }
+        } catch (error) {
+            console.error('Error removing admin role:', error);
+            alert('Failed to update user role. Please try again.');
+        }
     }
 });

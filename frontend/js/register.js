@@ -3,6 +3,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const errorMessage = document.getElementById('errorMessage');
     const successMessage = document.getElementById('successMessage');
     const passwordInput = document.getElementById('password');
+    const confirmPasswordInput = document.getElementById('confirmPassword');
     const strengthBar = document.querySelector('.strength-bar');
     const strengthText = document.querySelector('.strength-text');
     
@@ -67,6 +68,20 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
     
+    // Real-time password confirmation validation
+    confirmPasswordInput.addEventListener('input', function() {
+        const password = passwordInput.value;
+        const confirmPassword = this.value;
+        
+        if (confirmPassword && password !== confirmPassword) {
+            this.style.borderColor = '#dc3545';
+            this.style.boxShadow = '0 0 0 3px rgba(220, 53, 69, 0.3)';
+        } else {
+            this.style.borderColor = '';
+            this.style.boxShadow = '';
+        }
+    });
+    
     // Register form submission
     registerForm.addEventListener('submit', async function(e) {
         e.preventDefault();
@@ -76,15 +91,23 @@ document.addEventListener('DOMContentLoaded', function() {
         const password = document.getElementById('password').value;
         const confirmPassword = document.getElementById('confirmPassword').value;
         
+        // Reset styles
+        confirmPasswordInput.style.borderColor = '';
+        confirmPasswordInput.style.boxShadow = '';
+        
         // Validate passwords match
         if (password !== confirmPassword) {
             showError('Passwords do not match');
+            confirmPasswordInput.style.borderColor = '#dc3545';
+            confirmPasswordInput.style.boxShadow = '0 0 0 3px rgba(220, 53, 69, 0.3)';
+            confirmPasswordInput.focus();
             return;
         }
         
         // Validate password strength
         if (password.length < 8) {
             showError('Password must be at least 8 characters long');
+            passwordInput.focus();
             return;
         }
         
@@ -128,6 +151,12 @@ document.addEventListener('DOMContentLoaded', function() {
         errorMessage.style.display = 'block';
         successMessage.style.display = 'none';
         
+        // Make error message more visible
+        errorMessage.style.backgroundColor = 'rgba(220, 53, 69, 0.1)';
+        errorMessage.style.padding = '10px';
+        errorMessage.style.borderRadius = '5px';
+        errorMessage.style.border = '1px solid #dc3545';
+        
         setTimeout(() => {
             errorMessage.style.display = 'none';
         }, 5000);
@@ -137,5 +166,11 @@ document.addEventListener('DOMContentLoaded', function() {
         successMessage.textContent = message;
         successMessage.style.display = 'block';
         errorMessage.style.display = 'none';
+        
+        // Make success message more visible
+        successMessage.style.backgroundColor = 'rgba(40, 167, 69, 0.1)';
+        successMessage.style.padding = '10px';
+        successMessage.style.borderRadius = '5px';
+        successMessage.style.border = '1px solid #28a745';
     }
 });

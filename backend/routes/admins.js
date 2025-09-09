@@ -1,79 +1,157 @@
 const express = require('express');
 const router = express.Router();
-
-// Mock data for admin
-const events = [
-  {
-    id: 1,
-    title: 'Tech Conference 2023',
-    date: '2023-06-15',
-    registered: 247,
-    capacity: 500,
-    revenue: 12350
-  },
-  {
-    id: 2,
-    title: 'Academic Symposium',
-    date: '2023-07-22',
-    registered: 189,
-    capacity: 300,
-    revenue: 9450
-  },
-  {
-    id: 3,
-    title: 'Summer Music Festival',
-    date: '2023-08-05',
-    registered: 756,
-    capacity: 1000,
-    revenue: 37800
-  }
-];
-
-const users = [
-  { id: 1, name: 'John Doe', email: 'user@example.com', registrations: 2 },
-  { id: 2, name: 'Jane Smith', email: 'jane@example.com', registrations: 3 },
-  { id: 3, name: 'Bob Johnson', email: 'bob@example.com', registrations: 1 }
-];
+const Event = require('../models/event');
+const User = require('../models/user');
+const Registration = require('../models/registration');
+const { adminAuth } = require('../middleware/auth');
 
 // Get admin dashboard stats
-router.get('/stats', (req, res) => {
-  const totalEvents = events.length;
-  const totalUsers = users.length;
-  const totalRegistrations = events.reduce((sum, event) => sum + event.registered, 0);
-  const totalRevenue = events.reduce((sum, event) => sum + event.revenue, 0);
-  
-  res.json({
-    totalEvents,
-    totalUsers,
-    totalRegistrations,
-    totalRevenue
-  });
+router.get('/stats', adminAuth, async (req, res) => {
+  try {
+    const totalEvents = await Event.countDocuments();
+    const totalUsers = await User.countDocuments();
+    const totalRegistrations = await Registration.countDocuments();
+    
+    // Calculate revenue (assuming $50 per registration for demo)
+    const totalRevenue = totalRegistrations * 50;
+    
+    res.json({
+      totalEvents,
+      totalUsers,
+      totalRegistrations,
+      totalRevenue
+    });
+  } catch (error) {
+    console.error('Error fetching stats:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
 });
 
 // Get all events with details
-router.get('/events', (req, res) => {
-  res.json(events);
+router.get('/events', adminAuth, async (req, res) => {
+  try {
+    const events = await Event.find()
+      .populate('createdBy', 'name email')
+      .sort({ date: -1 });
+    
+    res.json(events);
+  } catch (error) {
+    console.error('Error fetching events:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
 });
 
 // Create new event
-router.post('/events', (req, res) => {
-  const { title, date, capacity } = req.body;
-  const newEvent = {
-    id: events.length + 1,
-    title,
-    date,
-    registered: 0,
-    capacity,
-    revenue: 0
-  };
-  
-  events.push(newEvent);
-  res.status(201).json(newEvent);
+router.post('/events', adminAuth, async (req, res) => {
+  try {
+    const { title, description, date, time, location, capacity } = req.body;
+    
+    const event = new Event({
+      title,
+      description,
+      date,
+      time,
+      location,
+      capacity,
+      createdBy: req.user.userId
+    });
+    
+    await event.save();
+    
+    // Populate createdBy field for response
+    await event.populate('createdBy', 'name email');
+    
+    res.status(201).json(event);
+  } catch (error) {
+    console.error('Error creating event:', error);
+    
+    if (error.name === 'ValidationError') {
+      const errors = Object.values(error.errors).map(err => err.message);
+      return res.status(400).json({ message: errors.join(', ') });
+    }
+    
+    res.status(500).json({ message: 'Server error' });
+  }
 });
 
 // Get all users
-router.get('/users', (req, res) => {
-  res.json(users);
+router.get('/users', adminAuth, async (req, res) => {
+  try {
+    const users = await User.find().select('-password');
+    
+    // Get registration count for each user
+    const usersWithStats = await Promise.all(
+      users.map(async (user) => {
+        const registrationCount = await Registration.countDocuments({ 
+          userId: user._id 
+        });
+        
+        return {
+          ...user.toObject(),
+          registrations: registrationCount
+        };
+      })
+    );
+    
+    res.json(usersWithStats);
+  } catch (error) {
+    console.error('Error fetching users:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
 });
+// Make user admin
+router.put('/users/:userId/make-admin', adminAuth, async (req, res) => {
+    try {
+        const { userId } = req.params;
+        
+        // Validate userId
+        if (!userId || userId === 'undefined' || !mongoose.Types.ObjectId.isValid(userId)) {
+            return res.status(400).json({ message: 'Invalid user ID' });
+        }
+        
+        const user = await User.findByIdAndUpdate(
+            userId,
+            { role: 'admin' },
+            { new: true }
+        ).select('-password');
+        
+        if (!user) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+        
+        res.json({ message: 'User role updated to admin', user });
+    } catch (error) {
+        console.error('Error making user admin:', error);
+        res.status(500).json({ message: 'Server error' });
+    }
+});
+
+// Remove admin role
+router.put('/users/:userId/remove-admin', adminAuth, async (req, res) => {
+    try {
+        const { userId } = req.params;
+        
+        // Validate userId
+        if (!userId || userId === 'undefined' || !mongoose.Types.ObjectId.isValid(userId)) {
+            return res.status(400).json({ message: 'Invalid user ID' });
+        }
+        
+        const user = await User.findByIdAndUpdate(
+            userId,
+            { role: 'user' },
+            { new: true }
+        ).select('-password');
+        
+        if (!user) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+        
+        res.json({ message: 'Admin role removed', user });
+    } catch (error) {
+        console.error('Error removing admin role:', error);
+        res.status(500).json({ message: 'Server error' });
+    }
+});
+
 
 module.exports = router;

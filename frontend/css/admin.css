@@ -605,3 +605,53 @@ footer {
         padding: 10px;
     }
 }
+
+.user-details {
+    padding: 20px 0;
+}
+
+.detail-item {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 15px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.detail-item label {
+    font-weight: 600;
+    color: var(--primary);
+}
+
+.badge {
+    padding: 4px 8px;
+    border-radius: 12px;
+    font-size: 0.8rem;
+    font-weight: 600;
+}
+
+.badge-admin {
+    background: rgba(67, 97, 238, 0.2);
+    color: var(--primary);
+}
+
+.badge-user {
+    background: rgba(40, 167, 69, 0.2);
+    color: var(--success);
+}
+
+.user-id {
+    font-family: monospace;
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+}
+
+.btn-warning {
+    background: linear-gradient(45deg, var(--warning), #ffaa00);
+    color: black;
+}
+
+.btn-warning:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 20px rgba(255, 204, 0, 0.4);
+}

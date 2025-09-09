@@ -1,5 +1,6 @@
 const jwt = require('jsonwebtoken');
 
+
 // Authentication middleware
 const auth = (req, res, next) => {
   try {

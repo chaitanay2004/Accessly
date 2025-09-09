@@ -1,70 +1,92 @@
 const express = require('express');
 const router = express.Router();
-
-// Mock events data
-const events = [
-  {
-    id: 1,
-    title: 'Tech Conference 2023',
-    description: 'Join us for the biggest technology conference of the year',
-    date: '2023-06-15',
-    time: '18:00',
-    location: 'Convention Center',
-    capacity: 500,
-    registered: 247,
-    image: 'tech-conference.jpg'
-  },
-  {
-    id: 2,
-    title: 'Academic Symposium',
-    description: 'A gathering of academics and researchers',
-    date: '2023-07-22',
-    time: '10:00',
-    location: 'University Hall',
-    capacity: 300,
-    registered: 189,
-    image: 'academic-symposium.jpg'
-  },
-  {
-    id: 3,
-    title: 'Summer Music Festival',
-    description: 'Enjoy a night of music and entertainment',
-    date: '2023-08-05',
-    time: '19:00',
-    location: 'City Park',
-    capacity: 1000,
-    registered: 756,
-    image: 'music-festival.jpg'
-  }
-];
+const Event = require('../models/event');
+const Registration = require('../models/registration');
+const { auth } = require('../middleware/auth');
 
 // Get all events
-router.get('/', (req, res) => {
-  res.json(events);
+router.get('/', async (req, res) => {
+  try {
+    const events = await Event.find()
+      .populate('createdBy', 'name email')
+      .sort({ date: 1 });
+    res.json(events);
+  } catch (error) {
+    console.error('Error fetching events:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
 });
 
 // Get single event
-router.get('/:id', (req, res) => {
-  const event = events.find(e => e.id === parseInt(req.params.id));
-  if (!event) {
-    return res.status(404).json({ message: 'Event not found' });
+router.get('/:id', async (req, res) => {
+  try {
+    const event = await Event.findById(req.params.id)
+      .populate('createdBy', 'name email');
+    
+    if (!event) {
+      return res.status(404).json({ message: 'Event not found' });
+    }
+    
+    res.json(event);
+  } catch (error) {
+    console.error('Error fetching event:', error);
+    res.status(500).json({ message: 'Server error' });
   }
-  res.json(event);
 });
 
 // Register for event
-router.post('/:id/register', (req, res) => {
-  const event = events.find(e => e.id === parseInt(req.params.id));
-  if (!event) {
-    return res.status(404).json({ message: 'Event not found' });
+router.post('/:id/register', auth, async (req, res) => {
+  try {
+    const event = await Event.findById(req.params.id);
+    
+    if (!event) {
+      return res.status(404).json({ message: 'Event not found' });
+    }
+    
+    // Check if event is in the past
+    if (new Date(event.date) < new Date()) {
+      return res.status(400).json({ message: 'Cannot register for past events' });
+    }
+    
+    // Check if user is already registered
+    const existingRegistration = await Registration.findOne({
+      userId: req.user.userId,
+      eventId: req.params.id
+    });
+    
+    if (existingRegistration) {
+      return res.status(400).json({ message: 'Already registered for this event' });
+    }
+    
+    // Check if event is full
+    const registrationCount = await Registration.countDocuments({ 
+      eventId: req.params.id 
+    });
+    
+    if (registrationCount >= event.capacity) {
+      return res.status(400).json({ message: 'Event is full' });
+    }
+    
+    // Create registration
+    const registration = new Registration({
+      userId: req.user.userId,
+      eventId: req.params.id
+    });
+    
+    await registration.save();
+    
+    // Update event registered count
+    event.registered = registrationCount + 1;
+    await event.save();
+    
+    res.json({ 
+      message: 'Registration successful', 
+      registration 
+    });
+  } catch (error) {
+    console.error('Error registering for event:', error);
+    res.status(500).json({ message: 'Server error' });
   }
-  
-  if (event.registered >= event.capacity) {
-    return res.status(400).json({ message: 'Event is full' });
-  }
-  
-  event.registered++;
-  res.json({ message: 'Registration successful', event });
 });
 
 module.exports = router;

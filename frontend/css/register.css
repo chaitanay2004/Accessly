@@ -313,3 +313,31 @@ body::before {
         font-size: 1.8rem;
     }
 }
+.error-message {
+    color: var(--danger);
+    text-align: center;
+    margin-top: 15px;
+    display: none;
+    animation: shake 0.5s ease-in-out;
+    background: rgba(220, 53, 69, 0.1);
+    padding: 10px;
+    border-radius: 5px;
+    border: 1px solid var(--danger);
+}
+
+.success-message {
+    color: var(--success);
+    text-align: center;
+    margin-top: 15px;
+    display: none;
+    background: rgba(40, 167, 69, 0.1);
+    padding: 10px;
+    border-radius: 5px;
+    border: 1px solid var(--success);
+}
+
+/* Add input error state */
+input.error {
+    border-color: var(--danger) !important;
+    box-shadow: 0 0 0 3px rgba(220, 53, 69, 0.3) !important;
+}

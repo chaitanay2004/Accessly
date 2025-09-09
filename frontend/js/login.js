@@ -26,9 +26,9 @@ document.addEventListener('DOMContentLoaded', function() {
         document.body.appendChild(particle);
     }
     
-    // Auto-fill demo credentials for testing
-    document.getElementById('email').value = 'user@example.com';
-    document.getElementById('password').value = 'password123';
+    // // Auto-fill demo credentials for testing
+    // document.getElementById('email').value = 'user@example.com';
+    // document.getElementById('password').value = 'password123';
     
     // Login form submission
     loginForm.addEventListener('submit', async function(e) {
@@ -61,8 +61,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
             } else {
                 if (data.message === 'User not found') {
-                    // Redirect to registration page if user doesn't exist
-                    window.location.href = '/register.html?email=' + encodeURIComponent(email);
+                    // Show error message and focus on email field
+                    showError('This email is not registered. Please create an account first.');
+                    document.getElementById('email').focus();
                 } else {
                     showError(data.message || 'Login failed');
                 }
