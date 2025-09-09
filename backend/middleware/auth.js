@@ -1,6 +1,5 @@
 const jwt = require('jsonwebtoken');
 
-
 // Authentication middleware
 const auth = (req, res, next) => {
   try {
@@ -10,11 +9,17 @@ const auth = (req, res, next) => {
       return res.status(401).json({ message: 'No token, authorization denied' });
     }
     
-    const decoded = jwt.verify(token, 'your_jwt_secret');
+    const decoded = jwt.verify(token, process.env.JWT_SECRET || 'your_jwt_secret');
     req.user = decoded;
     next();
   } catch (error) {
-    res.status(401).json({ message: 'Token is not valid' });
+    if (error.name === 'TokenExpiredError') {
+      return res.status(401).json({ message: 'Token expired' });
+    } else if (error.name === 'JsonWebTokenError') {
+      return res.status(401).json({ message: 'Invalid token' });
+    } else {
+      return res.status(401).json({ message: 'Token is not valid' });
+    }
   }
 };
 
@@ -27,7 +32,7 @@ const adminAuth = (req, res, next) => {
       return res.status(401).json({ message: 'No token, authorization denied' });
     }
     
-    const decoded = jwt.verify(token, 'your_jwt_secret');
+    const decoded = jwt.verify(token, process.env.JWT_SECRET || 'your_jwt_secret');
     
     if (decoded.role !== 'admin') {
       return res.status(403).json({ message: 'Access denied. Admin required.' });
@@ -36,7 +41,13 @@ const adminAuth = (req, res, next) => {
     req.user = decoded;
     next();
   } catch (error) {
-    res.status(401).json({ message: 'Token is not valid' });
+    if (error.name === 'TokenExpiredError') {
+      return res.status(401).json({ message: 'Token expired' });
+    } else if (error.name === 'JsonWebTokenError') {
+      return res.status(401).json({ message: 'Invalid token' });
+    } else {
+      return res.status(401).json({ message: 'Token is not valid' });
+    }
   }
 };
 

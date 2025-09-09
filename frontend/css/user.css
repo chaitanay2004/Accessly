@@ -415,7 +415,7 @@ h2::after {
 .ticket-qr {
     margin: 20px 0;
     padding: 15px;
-    background: white;
+    background: rgba(0, 0, 0, 0.1);
     border-radius: 10px;
     box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
     display: inline-block;
@@ -609,4 +609,141 @@ footer {
     .btn {
         width: 100%;
     }
+}
+/* Add this to your user.css file */
+.hidden {
+    display: none !important;
+}
+
+/* Ensure nav links have proper styling for active state */
+.nav-links a.active {
+    background: rgba(255, 255, 255, 0.1);
+    box-shadow: 0 0 15px rgba(138, 43, 226, 0.3);
+}
+/* Error message styling */
+.error-message {
+    text-align: center;
+    padding: 20px;
+    color: #ff3860;
+    background: rgba(255, 56, 96, 0.1);
+    border-radius: 8px;
+    margin: 20px 0;
+}
+
+.error-message button {
+    margin-top: 10px;
+}
+
+/* Empty state styling */
+.text-center {
+    text-align: center;
+    padding: 40px 20px;
+    color: #b3b3b3;
+}
+
+/* Event card fallback styles */
+.event-title:empty::before {
+    content: "Untitled Event";
+    color: #b3b3b3;
+}
+
+.event-content p:empty::before {
+    content: "No description available.";
+    color: #b3b3b3;
+    font-style: italic;
+}
+/* QR Code Styles */
+.ticket-qr-container {
+    text-align: center;
+    margin: 15px 0;
+    padding: 15px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 10px;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.ticket-qr {
+    display: inline-block;
+    padding: 10px;
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+    min-height: 170px;
+    min-width: 170px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.ticket-qr img {
+    border: 5px solid white;
+    border-radius: 8px;
+    background: white;
+    display: block;
+}
+
+.qr-note {
+    margin-top: 10px;
+    font-size: 12px;
+    color: var(--text-secondary);
+}
+
+/* QR Code Loading State */
+.qr-loading {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    height: 150px;
+    color: #666;
+}
+
+.qr-loading .fa-spinner {
+    font-size: 24px;
+    margin-bottom: 10px;
+    color: var(--primary);
+}
+
+.qr-loading p {
+    margin: 0;
+    font-size: 12px;
+}
+
+/* QR Code Fallback Styles */
+.qr-fallback {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 150px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+    border: 2px dashed rgba(255, 255, 255, 0.3);
+}
+
+.qr-fallback-content {
+    text-align: center;
+    color: var(--text-secondary);
+}
+
+.qr-fallback-content i {
+    color: var(--primary);
+    margin-bottom: 10px;
+}
+
+.qr-fallback-content p {
+    margin: 5px 0;
+    font-weight: 600;
+    font-size: 14px;
+}
+
+.qr-fallback-content small {
+    font-size: 11px;
+}
+
+/* Ensure QR code container has proper dimensions */
+.ticket-card .ticket-qr-container {
+    min-height: 200px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
 }

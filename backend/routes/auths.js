@@ -91,4 +91,50 @@ router.post('/register', async (req, res) => {
   }
 });
 
+// Token refresh endpoint
+router.post('/refresh', async (req, res) => {
+  try {
+    const token = req.header('Authorization')?.replace('Bearer ', '');
+    
+    if (!token) {
+      return res.status(401).json({ message: 'No token provided' });
+    }
+    
+    // Verify the current token
+    const decoded = jwt.verify(token, process.env.JWT_SECRET || 'your_jwt_secret');
+    
+    // Find the user
+    const user = await User.findById(decoded.userId);
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+    
+    // Create a new token
+    const newToken = jwt.sign(
+      { userId: user._id, role: user.role }, 
+      process.env.JWT_SECRET || 'your_jwt_secret', 
+      { expiresIn: '1h' }
+    );
+    
+    res.json({
+      token: newToken,
+      user: {
+        id: user._id,
+        name: user.name,
+        email: user.email,
+        role: user.role
+      }
+    });
+  } catch (error) {
+    console.error('Token refresh error:', error);
+    
+    if (error.name === 'TokenExpiredError') {
+      return res.status(401).json({ message: 'Token expired' });
+    } else if (error.name === 'JsonWebTokenError') {
+      return res.status(401).json({ message: 'Invalid token' });
+    } else {
+      return res.status(500).json({ message: 'Server error' });
+    }
+  }
+});
 module.exports = router;

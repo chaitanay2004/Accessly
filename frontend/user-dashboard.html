@@ -7,23 +7,25 @@
     <link rel="stylesheet" href="css/user.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- QR Code-->
+<script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.1/build/qrcode.min.js"></script>
 </head>
 <body>
     <header>
         <div class="container">
             <nav>
-                <div class="logo">
-                    <i class="fas fa-ticket-alt"></i>
-                    <span>Accessly</span>
-                </div>
-                <ul class="nav-links">
-                    <li><a href="#" class="active">Dashboard</a></li>
-                    <li><a href="#" id="eventsLink">Events</a></li>
-                    <li><a href="#" id="ticketsLink">My Tickets</a></li>
-                    <li><a href="#" id="profileLink">Profile</a></li>
-                    <li><a href="#" id="logoutBtn">Logout</a></li>
-                </ul>
-            </nav>
+    <div class="logo">
+        <i class="fas fa-ticket-alt"></i>
+        <span>Accessly</span>
+    </div>
+    <ul class="nav-links">
+        <li><a href="#dashboard" data-target="#dashboard" class="active">Dashboard</a></li>
+        <li><a href="#events" data-target="#events">Events</a></li>
+        <li><a href="#tickets" data-target="#tickets">My Tickets</a></li>
+        <li><a href="#profile" data-target="#profile">Profile</a></li>
+        <li><a href="#logout" data-target="#logout">Logout</a></li>
+    </ul>
+</nav>
         </div>
     </header>
 
@@ -107,7 +109,7 @@
 
     <footer>
         <div class="container">
-            <p>&copy; 2023 Accessly. All rights reserved.</p>
+            <p>&copy; 2025 Accessly. All rights reserved.</p>
         </div>
     </footer>
 

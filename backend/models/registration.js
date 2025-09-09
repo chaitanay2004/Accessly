@@ -2,12 +2,12 @@ const mongoose = require('mongoose');
 
 const registrationSchema = new mongoose.Schema({
   userId: {
-    type: mongoose.Schema.Types.ObjectId,
+    type: mongoose.Schema.Types.ObjectId, // Should be ObjectId
     ref: 'User',
     required: true
   },
   eventId: {
-    type: mongoose.Schema.Types.ObjectId,
+    type: mongoose.Schema.Types.ObjectId, // Should be ObjectId, not mixed
     ref: 'Event',
     required: true
   },

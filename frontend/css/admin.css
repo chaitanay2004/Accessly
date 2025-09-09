@@ -655,3 +655,12 @@ footer {
     transform: translateY(-3px);
     box-shadow: 0 8px 20px rgba(255, 204, 0, 0.4);
 }
+.hidden {
+    display: none !important;
+}
+
+/* Ensure nav links have proper styling for active state */
+.nav-links a.active {
+    background: rgba(255, 255, 255, 0.1);
+    box-shadow: 0 0 15px rgba(138, 43, 226, 0.3);
+}
